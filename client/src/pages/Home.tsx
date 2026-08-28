@@ -17,7 +17,8 @@ import {
   Target,
   Undo2,
   Waves,
-  X,
+  Volume2,
+  VolumeX,
 } from "lucide-react";
 
 const FISH_ASSET = "/manus-storage/goldfish-overlay_cbdc9929.png";
@@ -322,7 +323,7 @@ function CameraCard({
       aria-label={`${isFront ? "Camera trước" : "Camera sau"}. Kéo để di chuyển.`}
     >
       <div className="camera-frame">
-        {stream ? <video ref={(node) => { if (node) node.srcObject = stream; }} autoPlay muted playsInline /> : <div className="camera-empty"><Camera size={18} /><span>{status === "blocked" ? "Cấp quyền camera" : "Chưa bật"}</span></div>}
+        {stream ? <video ref={(node) => { if (node) node.srcObject = stream; }} autoPlay muted playsInline /> : <div className="camera-empty"><Camera size={18} /><span>{status === "blocked" ? "Cấp quyền camera" : status === "connecting" ? "Đang xin quyền" : "Chưa bật"}</span></div>}
         <div className="camera-scanline" />
         <div className="camera-corner camera-corner-tl" />
         <div className="camera-corner camera-corner-br" />
@@ -353,9 +354,12 @@ export default function Home() {
   const [cameraStreams, setCameraStreams] = useState<Record<CameraId, MediaStream | null>>({ front: null, back: null });
   const [cameraStatus, setCameraStatus] = useState<Record<CameraId, CameraStatus>>({ front: "idle", back: "idle" });
   const [cameraPositions, setCameraPositions] = useState<Record<CameraId, CameraPosition>>({ front: { x: 3, y: 20 }, back: { x: 68, y: 20 } });
+  const [audioEnabled, setAudioEnabled] = useState(false);
   const stageRef = useRef<HTMLDivElement>(null);
   const dragRef = useRef<{ id: CameraId; offsetX: number; offsetY: number } | null>(null);
   const cameraStreamsRef = useRef(cameraStreams);
+  const audioRef = useRef<{ context: AudioContext; master: GainNode; sources: AudioScheduledSourceNode[] } | null>(null);
+  const battleTimerRef = useRef<number | null>(null);
 
   const legalTargets = useMemo(() => selected === null || turn !== "red" || winner ? [] : getLegalMoves(board, "red").filter((move) => move.from === selected).map((move) => move.to), [board, selected, turn, winner]);
   const redCount = board.filter((piece) => piece?.side === "red").length;
@@ -365,6 +369,51 @@ export default function Home() {
     setRewardKey((key) => key + 1);
     setRewardVisible(true);
     window.setTimeout(() => setRewardVisible(false), 2300);
+  }, []);
+
+  const playBoardSound = useCallback((kind: "move" | "capture") => {
+    const context = audioRef.current?.context;
+    if (!context || context.state !== "running") return;
+    const oscillator = context.createOscillator();
+    const gain = context.createGain();
+    oscillator.type = kind === "capture" ? "sawtooth" : "triangle";
+    oscillator.frequency.setValueAtTime(kind === "capture" ? 110 : 220, context.currentTime);
+    oscillator.frequency.exponentialRampToValueAtTime(kind === "capture" ? 58 : 120, context.currentTime + .18);
+    gain.gain.setValueAtTime(.0001, context.currentTime);
+    gain.gain.exponentialRampToValueAtTime(kind === "capture" ? .16 : .08, context.currentTime + .015);
+    gain.gain.exponentialRampToValueAtTime(.0001, context.currentTime + .2);
+    oscillator.connect(gain).connect(context.destination);
+    oscillator.start();
+    oscillator.stop(context.currentTime + .22);
+  }, []);
+
+  const playBattlePulse = useCallback(() => {
+    const current = audioRef.current;
+    if (!current || current.context.state !== "running") return;
+    const { context, master } = current;
+    const now = context.currentTime;
+    const drum = context.createOscillator();
+    const drumGain = context.createGain();
+    drum.type = "sine";
+    drum.frequency.setValueAtTime(86, now);
+    drum.frequency.exponentialRampToValueAtTime(42, now + .28);
+    drumGain.gain.setValueAtTime(.0001, now);
+    drumGain.gain.exponentialRampToValueAtTime(.28, now + .02);
+    drumGain.gain.exponentialRampToValueAtTime(.0001, now + .34);
+    drum.connect(drumGain).connect(master);
+    drum.start(now);
+    drum.stop(now + .36);
+    const steel = context.createOscillator();
+    const steelGain = context.createGain();
+    steel.type = "triangle";
+    steel.frequency.setValueAtTime(690, now + .06);
+    steel.frequency.exponentialRampToValueAtTime(230, now + .32);
+    steelGain.gain.setValueAtTime(.0001, now + .06);
+    steelGain.gain.exponentialRampToValueAtTime(.06, now + .075);
+    steelGain.gain.exponentialRampToValueAtTime(.0001, now + .34);
+    steel.connect(steelGain).connect(master);
+    steel.start(now + .06);
+    steel.stop(now + .37);
   }, []);
 
   const commitMove = useCallback((move: Move) => {
@@ -378,8 +427,9 @@ export default function Home() {
       setCaptured((current) => [...current, capturedPiece]);
       triggerReward();
     }
+    playBoardSound(capturedPiece ? "capture" : "move");
     if (movingPiece) setMoveHistory((current) => [...current, `${movingPiece.label} ${formatSquare(move.from)} → ${formatSquare(move.to)}`].slice(-5));
-  }, [board, triggerReward]);
+  }, [board, playBoardSound, triggerReward]);
 
   const resetGame = useCallback(() => {
     setBoard(createInitialBoard());
@@ -447,13 +497,14 @@ export default function Home() {
           setCaptured((current) => [...current, capturedPiece]);
           triggerReward();
         }
+        playBoardSound(capturedPiece ? "capture" : "move");
         if (findGeneral(next, "red") < 0) setWinner("black");
         else setTurn("red");
         setIsThinking(false);
       }, 80);
     }, 420);
     return () => window.clearTimeout(timer);
-  }, [board, isThinking, triggerReward, turn, winner]);
+  }, [board, isThinking, playBoardSound, triggerReward, turn, winner]);
 
   useEffect(() => {
     cameraStreamsRef.current = cameraStreams;
@@ -461,12 +512,16 @@ export default function Home() {
 
   useEffect(() => () => {
     Object.values(cameraStreamsRef.current).forEach((stream) => stream?.getTracks().forEach((track) => track.stop()));
+    if (battleTimerRef.current !== null) window.clearInterval(battleTimerRef.current);
+    audioRef.current?.sources.forEach((source) => { try { source.stop(); } catch { /* already stopped */ } });
+    void audioRef.current?.context.close();
   }, []);
 
   const toggleCamera = async (id: CameraId) => {
-    const existing = cameraStreams[id];
+    const existing = cameraStreamsRef.current[id];
     if (existing) {
       existing.getTracks().forEach((track) => track.stop());
+      cameraStreamsRef.current = { ...cameraStreamsRef.current, [id]: null };
       setCameraStreams((current) => ({ ...current, [id]: null }));
       setCameraStatus((current) => ({ ...current, [id]: "idle" }));
       return;
@@ -478,6 +533,7 @@ export default function Home() {
     setCameraStatus((current) => ({ ...current, [id]: "connecting" }));
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: id === "front" ? "user" : "environment" }, audio: false });
+      cameraStreamsRef.current = { ...cameraStreamsRef.current, [id]: stream };
       setCameraStreams((current) => ({ ...current, [id]: stream }));
       setCameraStatus((current) => ({ ...current, [id]: "live" }));
     } catch {
@@ -486,7 +542,46 @@ export default function Home() {
   };
 
   const startAllCameras = async () => {
-    await Promise.allSettled((["front", "back"] as CameraId[]).map((id) => cameraStreams[id] ? Promise.resolve() : toggleCamera(id)));
+    for (const id of ["front", "back"] as CameraId[]) {
+      if (!cameraStreamsRef.current[id]) await toggleCamera(id);
+    }
+  };
+
+  const toggleBattleAudio = async () => {
+    if (audioRef.current) {
+      if (battleTimerRef.current !== null) window.clearInterval(battleTimerRef.current);
+      battleTimerRef.current = null;
+      audioRef.current.sources.forEach((source) => { try { source.stop(); } catch { /* already stopped */ } });
+      await audioRef.current.context.close();
+      audioRef.current = null;
+      setAudioEnabled(false);
+      return;
+    }
+    const AudioContextClass = window.AudioContext || (window as typeof window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+    if (!AudioContextClass) return;
+    const context = new AudioContextClass();
+    await context.resume();
+    const master = context.createGain();
+    master.gain.value = .045;
+    master.connect(context.destination);
+    const drone = context.createOscillator();
+    const droneGain = context.createGain();
+    drone.type = "sine";
+    drone.frequency.value = 54;
+    droneGain.gain.value = .7;
+    drone.connect(droneGain).connect(master);
+    drone.start();
+    const pulse = context.createOscillator();
+    const pulseGain = context.createGain();
+    pulse.type = "triangle";
+    pulse.frequency.value = 1.7;
+    pulseGain.gain.value = .12;
+    pulse.connect(pulseGain).connect(master);
+    pulse.start();
+    audioRef.current = { context, master, sources: [drone, pulse] };
+    setAudioEnabled(true);
+    playBattlePulse();
+    battleTimerRef.current = window.setInterval(playBattlePulse, 4200);
   };
 
   const handleDragStart = (id: CameraId, event: React.PointerEvent<HTMLDivElement>) => {
@@ -582,7 +677,7 @@ export default function Home() {
                 })}
               </div>
             </div>
-            <div className="board-caption"><span>VIET</span><strong>CỜ TƯỚNG</strong><span>AI ARENA</span></div>
+            <div className="board-caption"><span>9×10 · 90 GIAO ĐIỂM</span><strong>CỜ TƯỚNG</strong><span>A–I · 1–10</span></div>
           </div>
 
           <div className="board-footer">
@@ -596,6 +691,7 @@ export default function Home() {
           <button className="control-button" type="button" onClick={undoMove} disabled={!snapshots.length || isThinking}><Undo2 size={15} /><span>HOÀN TÁC</span></button>
           <button className="control-button primary" type="button" onClick={resetGame}><RotateCcw size={15} /><span>TRẬN MỚI</span></button>
           <button className="control-button" type="button" onClick={() => window.alert(moveHistory.length ? moveHistory.join("\n") : "Chưa có nước đi nào.")}><History size={15} /><span>LỊCH SỬ</span></button>
+          <button className={`control-button audio-button ${audioEnabled ? "active" : ""}`} type="button" onClick={() => void toggleBattleAudio()}>{audioEnabled ? <Volume2 size={15} /> : <VolumeX size={15} />}<span>{audioEnabled ? "ÂM THANH ON" : "ÂM THANH"}</span></button>
         </section>
 
         <footer className="bottom-note"><span><Waves size={12} /> HỆ SINH THÁI QUÂN CỜ SỐ</span><span className="footer-center"><span className="pulse-ring" /> TÍN HIỆU ỔN ĐỊNH</span><span><CircleHelp size={12} /> TRỢ GIÚP</span></footer>

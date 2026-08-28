@@ -98,14 +98,16 @@ button:focus-visible { outline: 2px solid var(--jade-bright); outline-offset: 3p
 /* Layer 1 — fish are decorative and deliberately non-interactive. */
 .fish-layer, .reward-layer, .ad-layer { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
 .fish-layer { z-index: 4; }
-.goldfish { position: absolute; width: clamp(74px, 17vw, 126px); opacity: .52; filter: drop-shadow(0 4px 12px rgba(248,166,42,.26)); animation-name: swim-across; animation-timing-function: linear; animation-iteration-count: infinite; }
+.fish-layer::before { content: ""; position: absolute; inset: 0; opacity: .26; background-image: radial-gradient(circle at 9% 18%, rgba(201,239,222,.7) 0 1px, transparent 2px), radial-gradient(circle at 72% 34%, rgba(201,239,222,.5) 0 1px, transparent 2px), radial-gradient(circle at 37% 78%, rgba(201,239,222,.45) 0 1px, transparent 2px); background-size: 97px 137px, 151px 173px, 211px 190px; animation: bubbles-rise 13s linear infinite; }
+.goldfish { position: absolute; width: clamp(74px, 17vw, 126px); opacity: .52; filter: drop-shadow(0 4px 12px rgba(248,166,42,.26)) saturate(1.08); animation-name: swim-across; animation-timing-function: ease-in-out; animation-iteration-count: infinite; will-change: translate, rotate, opacity; }
 .goldfish-1 { animation-name: swim-across; }
 .goldfish-2 { animation-name: swim-back; opacity: .34; }
 .goldfish-3 { animation-name: swim-across; opacity: .27; }
 .goldfish-4 { animation-name: swim-back; opacity: .38; }
 .goldfish-5 { animation-name: swim-across; opacity: .24; }
-@keyframes swim-across { 0% { translate: -12vw 0; opacity: 0; } 7%, 85% { opacity: .62; } 50% { translate: 55vw -16px; } 93%, 100% { translate: 115vw 13px; opacity: 0; } }
-@keyframes swim-back { 0% { translate: 110vw 10px; opacity: 0; transform: scaleX(-1); } 8%, 85% { opacity: .4; } 50% { translate: 24vw -17px; } 94%, 100% { translate: -25vw 8px; opacity: 0; } }
+@keyframes swim-across { 0% { translate: -12vw 0; rotate: -7deg; opacity: 0; } 8% { opacity: .12; } 22% { rotate: 5deg; } 48% { translate: 44vw -18px; rotate: -3deg; opacity: .62; } 70% { translate: 78vw 8px; rotate: 6deg; } 88% { opacity: .14; } 100% { translate: 115vw 20px; rotate: -6deg; opacity: 0; } }
+@keyframes swim-back { 0% { translate: 110vw 10px; rotate: 8deg; opacity: 0; transform: scaleX(-1); } 10% { opacity: .1; } 28% { rotate: -5deg; } 52% { translate: 27vw -18px; rotate: 4deg; opacity: .4; } 77% { translate: -4vw 12px; rotate: -7deg; } 92% { opacity: .12; } 100% { translate: -25vw 8px; rotate: 5deg; opacity: 0; } }
+@keyframes bubbles-rise { 0% { background-position: 0 100px, 20px 80px, 0 140px; opacity: 0; } 22%, 74% { opacity: .26; } 100% { background-position: 20px -120px, -30px -150px, 40px -110px; opacity: 0; } }
 
 /* Layer 2 — reward reveal uses an unnamed electronics emblem. */
 .reward-layer { z-index: 12; display: grid; place-items: center; }
@@ -184,7 +186,7 @@ button:focus-visible { outline: 2px solid var(--jade-bright); outline-offset: 3p
 .board-cell:hover .chess-piece { transform: translateY(-2px); }
 .chess-piece.red { color: #8b2e23; background: radial-gradient(circle at 34% 27%, #ffe8c1, #d3895f 47%, #914032 100%); border: 1px solid #ffd89f; box-shadow: inset 0 0 0 2px rgba(111,39,28,.3), inset -3px -4px 5px rgba(71,19,13,.28), 0 4px 5px rgba(0,0,0,.56), 0 0 0 1px rgba(238,185,107,.48); text-shadow: 0 1px rgba(255,231,189,.45); }
 .chess-piece.black { color: #d9f0dc; background: radial-gradient(circle at 35% 25%, #80af96, #396b55 50%, #172c24 100%); border: 1px solid #aadfc0; box-shadow: inset 0 0 0 2px rgba(12,46,32,.4), inset -3px -4px 5px rgba(4,18,12,.4), 0 4px 5px rgba(0,0,0,.56), 0 0 0 1px rgba(112,195,165,.4); text-shadow: 0 1px rgba(4,21,14,.42); }
-.board-caption { display: flex; justify-content: space-between; align-items: center; padding: 7px 2px 0; color: rgba(230,198,127,.65); font: 8px "DM Mono", monospace; letter-spacing: .14em; }
+.board-caption { display: flex; justify-content: space-between; align-items: center; padding: 7px 2px 0; color: rgba(230,198,127,.65); font: 7px "DM Mono", monospace; letter-spacing: .1em; }
 .board-caption strong { color: var(--brass-bright); font: 700 11px "Playfair Display", serif; letter-spacing: .2em; }
 .board-footer { width: 100%; display: flex; align-items: center; justify-content: space-between; margin-top: 8px; color: #809087; font: 8px "DM Mono", monospace; letter-spacing: .07em; }
 .piece-stat { display: flex; align-items: center; gap: 5px; }
@@ -196,12 +198,13 @@ button:focus-visible { outline: 2px solid var(--jade-bright); outline-offset: 3p
 .thinking-dot { width: 5px; height: 5px; border-radius: 50%; background: #536c5f; }
 .thinking-dot.active { background: var(--brass-bright); box-shadow: 0 0 8px var(--brass-bright); animation: blink .7s infinite; }
 
-.control-deck { position: relative; z-index: 8; display: flex; justify-content: center; gap: 7px; margin: 14px auto 0; }
+.control-deck { position: relative; z-index: 8; display: flex; flex-wrap: wrap; justify-content: center; gap: 7px; margin: 14px auto 0; }
 .control-button { display: flex; align-items: center; gap: 6px; min-height: 35px; padding: 0 12px; border: 1px solid rgba(112,195,165,.22); border-radius: 11px; color: #a4b6ab; background: rgba(10, 25, 19, .84); font: 8px "DM Mono", monospace; letter-spacing: .08em; transition: transform .16s ease-out, border-color .16s ease-out, color .16s ease-out, background .16s ease-out; }
 .control-button:hover:not(:disabled) { color: var(--jade-bright); border-color: rgba(112,195,165,.64); background: rgba(25, 58, 45, .88); }
 .control-button:disabled { cursor: not-allowed; opacity: .36; }
 .control-button.primary { color: #332315; background: linear-gradient(145deg, var(--brass-bright), #b27b37); border-color: #f4d58d; box-shadow: 0 4px 16px rgba(208,162,90,.17); }
 .control-button.primary:hover { color: #23160d; background: #f7db9a; }
+.audio-button.active { color: var(--brass-bright); border-color: rgba(208,162,90,.7); box-shadow: 0 0 16px rgba(208,162,90,.14); }
 
 .bottom-note { position: relative; z-index: 8; display: flex; align-items: center; justify-content: space-between; margin: 13px 2px 0; color: #5f736a; font: 7px "DM Mono", monospace; letter-spacing: .06em; }
 .bottom-note span { display: flex; align-items: center; gap: 4px; }
