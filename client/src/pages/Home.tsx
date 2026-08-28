@@ -42,6 +42,7 @@ type Board = Array<Piece | null>;
 type Move = { from: number; to: number };
 type CameraPosition = { x: number; y: number };
 type CameraStatus = "idle" | "connecting" | "live" | "blocked";
+type DecorativeLayer = "fish" | "reward" | "ad";
 
 const pieceLabels: Record<PieceType, string> = {
   general: "TƯỚNG",
@@ -351,6 +352,8 @@ export default function Home() {
   const [winner, setWinner] = useState<Side | null>(null);
   const [rewardKey, setRewardKey] = useState(0);
   const [rewardVisible, setRewardVisible] = useState(false);
+  const [decorativeOrder, setDecorativeOrder] = useState<DecorativeLayer[]>(["fish", "ad", "reward"]);
+  const [zoomedLayer, setZoomedLayer] = useState<DecorativeLayer | null>(null);
   const [cameraStreams, setCameraStreams] = useState<Record<CameraId, MediaStream | null>>({ front: null, back: null });
   const [cameraStatus, setCameraStatus] = useState<Record<CameraId, CameraStatus>>({ front: "idle", back: "idle" });
   const [cameraPositions, setCameraPositions] = useState<Record<CameraId, CameraPosition>>({ front: { x: 3, y: 20 }, back: { x: 68, y: 20 } });
@@ -364,6 +367,20 @@ export default function Home() {
   const legalTargets = useMemo(() => selected === null || turn !== "red" || winner ? [] : getLegalMoves(board, "red").filter((move) => move.from === selected).map((move) => move.to), [board, selected, turn, winner]);
   const redCount = board.filter((piece) => piece?.side === "red").length;
   const blackCount = board.filter((piece) => piece?.side === "black").length;
+
+  useEffect(() => {
+    const shuffleTimer = window.setInterval(() => {
+      const layers: DecorativeLayer[] = ["fish", "ad", "reward"];
+      for (let index = layers.length - 1; index > 0; index -= 1) {
+        const swapIndex = Math.floor(Math.random() * (index + 1));
+        [layers[index], layers[swapIndex]] = [layers[swapIndex], layers[index]];
+      }
+      setDecorativeOrder(layers);
+      setZoomedLayer(layers[Math.floor(Math.random() * layers.length)]);
+      window.setTimeout(() => setZoomedLayer(null), 1800);
+    }, 7800);
+    return () => window.clearInterval(shuffleTimer);
+  }, []);
 
   const triggerReward = useCallback(() => {
     setRewardKey((key) => key + 1);
@@ -611,17 +628,17 @@ export default function Home() {
       <div ref={stageRef} className="game-stage" onPointerMove={handleDragMove} onPointerUp={() => { dragRef.current = null; }} onPointerCancel={() => { dragRef.current = null; }}>
         <div className="texture-layer" style={{ backgroundImage: `url(${VISUAL_TARGET})` }} />
 
-        <div className="fish-layer" aria-hidden="true">
+        <div className={`fish-layer ${zoomedLayer === "fish" ? "layer-zoomed" : ""}`} style={{ zIndex: 4 + decorativeOrder.indexOf("fish") * 4 }} aria-hidden="true">
           {fishPositions.map((fish, index) => (
-            <img key={index} className={`goldfish goldfish-${index + 1}`} src={FISH_ASSET} alt="" style={{ top: fish.top, left: fish.left, animationDuration: fish.duration, animationDelay: fish.delay, transform: fish.flip ? "scaleX(-1)" : undefined }} />
+            <div key={index} className={`goldfish-float goldfish-${index + 1}`} style={{ top: fish.top, left: fish.left, animationDuration: fish.duration, animationDelay: fish.delay, transform: fish.flip ? "scaleX(-1)" : undefined }}><img className="goldfish" src={FISH_ASSET} alt="" /><span className="goldfish-tail" /></div>
           ))}
         </div>
 
-        <div className="reward-layer" aria-hidden="true">
+        <div className={`reward-layer ${zoomedLayer === "reward" ? "layer-zoomed" : ""}`} style={{ zIndex: 4 + decorativeOrder.indexOf("reward") * 4 }} aria-hidden="true">
           {rewardVisible && <div key={rewardKey} className="reward-pop"><img src={EMBLEM_ASSET} alt="" /><span>THU HOẠCH</span></div>}
         </div>
 
-        <div className="ad-layer" aria-hidden="true">
+        <div className={`ad-layer ${zoomedLayer === "ad" ? "layer-zoomed" : ""}`} style={{ zIndex: 4 + decorativeOrder.indexOf("ad") * 4 }} aria-hidden="true">
           {adPositions.map((ad, index) => <span key={index} className="ad-ribbon" style={{ top: ad.top, left: ad.left, animationDelay: ad.delay, animationDuration: ad.duration, rotate: ad.rotate }}>{AD_TEXT}</span>)}
         </div>
 
