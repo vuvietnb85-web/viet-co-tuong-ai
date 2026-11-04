@@ -1,5 +1,7 @@
 # VIET Cờ Tướng AI — Vietnamese Xiangqi (Chinese Chess) Web Game with AI and Live Cameras
 
+🔗 **Live demo / Chơi thử ngay:** https://vuvietnb85-web.github.io/viet-co-tuong-ai/
+
 **VIET Cờ Tướng AI is a dark-mode, mobile-first (9:16) web game for playing Xiangqi (cờ tướng) against a minimax alpha-beta AI, with two draggable live camera views on the board screen.**
 
 ## Features
