@@ -255,3 +255,30 @@ img, svg, video, canvas { max-width: 100%; }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: 0.001ms !important; animation-iteration-count: 1 !important; transition-duration: 0.001ms !important; scroll-behavior: auto !important; }
 }
+
+/* ===== Taiwan-style xiangqi board (visual only) ===== */
+.tw-board { position: relative; background: #e9c48a; background-image: radial-gradient(ellipse at 30% 20%, rgba(255,240,205,.55), transparent 60%), repeating-linear-gradient(94deg, rgba(150,95,40,.07) 0 2px, transparent 2px 11px), repeating-linear-gradient(88deg, rgba(120,70,25,.05) 0 1px, transparent 1px 23px), linear-gradient(160deg, #f0d29d, #ddb173 55%, #cf9f5f); }
+.tw-lines { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 1; pointer-events: none; overflow: visible; }
+.tw-lines .tw-grid { fill: none; stroke: #3b2412; stroke-width: 1.3px; vector-effect: non-scaling-stroke; }
+.tw-lines .tw-outer { fill: none; stroke: #2a170a; stroke-width: 3.2px; vector-effect: non-scaling-stroke; }
+.tw-lines .tw-flower { fill: none; stroke: #3b2412; stroke-width: 1.2px; vector-effect: non-scaling-stroke; }
+.tw-river { position: absolute; z-index: 1; left: 0; right: 0; top: 40%; height: 20%; display: flex; align-items: center; justify-content: space-around; padding: 0 12%; pointer-events: none; color: #3b2412; font-family: "Noto Serif TC", "BiauKai", "DFKai-SB", "KaiTi", "STKaiti", "Noto Serif SC", serif; font-weight: 700; font-size: clamp(16px, 5.4vw, 34px); letter-spacing: .1em; opacity: .9; }
+.tw-river span { display: inline-flex; gap: .9em; }
+.tw-river i { display: none; }
+.tw-piece { position: relative; z-index: 4; display: grid; place-items: center; width: 84%; aspect-ratio: 1; height: auto; border-radius: 50%; border: 0; padding: 0; letter-spacing: 0; white-space: nowrap;
+  background: radial-gradient(circle at 38% 30%, #fffaf0 0%, #f6e8c8 45%, #e6cf9f 80%, #c9a76e 100%);
+  box-shadow: 0 0 0 1.5px #8a6232, 0 0 0 3px #d9b77d, 0 3px 0 3px #8f6534, 0 6px 8px 2px rgba(40,20,5,.45), inset 0 -2px 4px rgba(120,80,30,.35), inset 0 2px 3px rgba(255,255,255,.7);
+  font-family: "Noto Serif TC", "BiauKai", "DFKai-SB", "KaiTi", "STKaiti", "Noto Serif SC", serif; font-weight: 700; font-size: clamp(14px, 4.6vw, 30px); line-height: 1; transition: transform .15s ease, box-shadow .15s ease; }
+.tw-piece::before { content: ""; position: absolute; inset: 9%; border-radius: 50%; border: 1.5px solid currentColor; opacity: .75; box-shadow: inset 0 1px 1px rgba(80,50,20,.25), 0 1px 0 rgba(255,255,255,.6); }
+.tw-piece > span { position: relative; transform: none; text-shadow: 0 1px 0 rgba(255,255,255,.55); }
+.tw-piece.tw-red { color: #c0161b; }
+.tw-piece.tw-black { color: #141414; }
+.board-cell.selected .tw-piece { transform: translateY(-3px) scale(1.04); box-shadow: 0 0 0 1.5px #8a6232, 0 0 0 3px #f2d48a, 0 0 0 5px rgba(196,40,30,.55), 0 9px 12px 2px rgba(40,20,5,.45), inset 0 -2px 4px rgba(120,80,30,.35), inset 0 2px 3px rgba(255,255,255,.7); }
+.board-frame.tw-board { border: 2px solid #5a3415; box-shadow: 0 0 0 3px #a8763c, 0 0 0 5px #4a2a10, 0 10px 18px rgba(0,0,0,.5); }
+.board-frame.tw-board::after { display: none; }
+.board-cell::after { inset: 8%; }
+.board-cell:hover::after { background: rgba(120,70,20,.10); box-shadow: none; }
+.board-cell.selected::after { background: transparent; box-shadow: none; }
+.board-cell.last::after { background: transparent; box-shadow: inset 0 0 0 2px rgba(192,22,27,.55); border-radius: 50%; }
+.board-cell.target::after { background: transparent; box-shadow: none; }
+.tw-board .target-dot { width: 22%; background: rgba(28,110,70,.85); box-shadow: 0 0 0 3px rgba(255,250,235,.7); animation: none; }

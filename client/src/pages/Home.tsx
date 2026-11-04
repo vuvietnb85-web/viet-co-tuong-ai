@@ -1,3 +1,4 @@
+import { TaiwanBoardLines, TaiwanRiver } from "@/components/TaiwanBoard";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   Camera,
@@ -43,6 +44,12 @@ type Move = { from: number; to: number };
 type CameraPosition = { x: number; y: number };
 type CameraStatus = "idle" | "connecting" | "live" | "blocked";
 type DecorativeLayer = "fish" | "reward" | "ad";
+
+// Display-only Traditional Chinese glyphs (Taiwan convention).
+const TW_GLYPHS: Record<Side, Record<PieceType, string>> = {
+  red: { general: "帥", advisor: "仕", elephant: "相", chariot: "俥", horse: "傌", cannon: "炮", soldier: "兵" },
+  black: { general: "將", advisor: "士", elephant: "象", chariot: "車", horse: "馬", cannon: "包", soldier: "卒" },
+};
 
 const pieceLabels: Record<PieceType, string> = {
   general: "TƯỚNG",
@@ -672,15 +679,10 @@ export default function Home() {
 
           <div className="board-shell">
             <div className="board-glow" />
-            <div className="board-frame">
+            <div className="board-frame tw-board">
               <div className="board-art" aria-hidden="true">
-                <svg viewBox="0 0 9 10" preserveAspectRatio="none">
-                  {Array.from({ length: 9 }, (_, col) => <line key={`v-${col}`} x1={col} y1="0" x2={col} y2="10" />)}
-                  {Array.from({ length: 10 }, (_, row) => <line key={`h-${row}`} x1="0" y1={row} x2="8" y2={row} />)}
-                  <path d="M3 0 L5 2 M5 0 L3 2 M3 8 L5 10 M5 8 L3 10" />
-                  <path className="river-mark" d="M0.2 5 L3.1 5 M4.9 5 L7.8 5" />
-                </svg>
-                <div className="river-label river-left">楚河</div><div className="river-label river-right">漢界</div>
+                <TaiwanBoardLines />
+                <TaiwanRiver />
               </div>
               <div className="board-grid">
                 {board.map((piece, square) => {
@@ -688,7 +690,7 @@ export default function Home() {
                   const isTarget = legalTargets.includes(square);
                   const isLast = lastMove?.from === square || lastMove?.to === square;
                   return <button key={square} type="button" className={`board-cell ${isSelected ? "selected" : ""} ${isTarget ? "target" : ""} ${isLast ? "last" : ""}`} onClick={() => handleSquare(square)} aria-label={piece ? `${piece.side === "red" ? "Đỏ" : "Đen"} ${piece.label}, hàng ${rowOf(square) + 1}, cột ${colOf(square) + 1}` : `Ô trống, hàng ${rowOf(square) + 1}, cột ${colOf(square) + 1}`}>
-                    {piece && <span className={`chess-piece ${piece.side}`} title={piece.label}><span>{piece.label}</span></span>}
+                    {piece && <span className={`chess-piece tw-piece tw-${piece.side}`} title={piece.label}><span>{TW_GLYPHS[piece.side][piece.type]}</span></span>}
                     {isTarget && !piece && <span className="target-dot" />}
                   </button>;
                 })}
