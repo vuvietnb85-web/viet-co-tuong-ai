@@ -282,3 +282,4 @@ img, svg, video, canvas { max-width: 100%; }
 .board-cell.last::after { background: transparent; box-shadow: inset 0 0 0 2px rgba(192,22,27,.55); border-radius: 50%; }
 .board-cell.target::after { background: transparent; box-shadow: none; }
 .tw-board .target-dot { width: 22%; background: rgba(28,110,70,.85); box-shadow: 0 0 0 3px rgba(255,250,235,.7); animation: none; }
+@media (max-width: 480px) { .camera-card .camera-chip, .camera-card .camera-label, .camera-card .camera-drag { display: none; } }
