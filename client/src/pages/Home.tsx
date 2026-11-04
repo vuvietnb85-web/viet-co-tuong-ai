@@ -363,7 +363,7 @@ export default function Home() {
   const [zoomedLayer, setZoomedLayer] = useState<DecorativeLayer | null>(null);
   const [cameraStreams, setCameraStreams] = useState<Record<CameraId, MediaStream | null>>({ front: null, back: null });
   const [cameraStatus, setCameraStatus] = useState<Record<CameraId, CameraStatus>>({ front: "idle", back: "idle" });
-  const [cameraPositions, setCameraPositions] = useState<Record<CameraId, CameraPosition>>({ front: { x: 3, y: 20 }, back: { x: 68, y: 20 } });
+  const [cameraPositions, setCameraPositions] = useState<Record<CameraId, CameraPosition>>({ front: { x: 1, y: 11 }, back: { x: 81, y: 11 } });
   const [audioEnabled, setAudioEnabled] = useState(false);
   const stageRef = useRef<HTMLDivElement>(null);
   const dragRef = useRef<{ id: CameraId; offsetX: number; offsetY: number } | null>(null);
@@ -620,9 +620,9 @@ export default function Home() {
     const stage = stageRef.current;
     if (!drag || !stage) return;
     const rect = stage.getBoundingClientRect();
-    const cardWidth = rect.width * 0.29;
+    const cardWidth = Math.min(rect.width * 0.18, 80);
     const cardHeight = cardWidth;
-    const x = clamp((event.clientX - rect.left - drag.offsetX) / rect.width * 100, 1, 70);
+    const x = clamp((event.clientX - rect.left - drag.offsetX) / rect.width * 100, 1, 99 - cardWidth / rect.width * 100);
     const y = clamp((event.clientY - rect.top - drag.offsetY) / rect.height * 100, 1, 82);
     void cardHeight;
     setCameraPositions((current) => ({ ...current, [drag.id]: { x, y } }));

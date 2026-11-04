@@ -128,7 +128,7 @@ button:focus-visible { outline: 2px solid var(--jade-bright); outline-offset: 3p
 @keyframes ribbon-drift { 0% { opacity: 0; translate: -2vw 9px; } 18%, 82% { opacity: .6; } 100% { opacity: 0; translate: 64vw -17px; } }
 
 .camera-layer { position: absolute; inset: 0; z-index: 20; pointer-events: none; }
-.camera-card { position: absolute; width: min(29vw, 164px); min-width: 106px; aspect-ratio: 1; pointer-events: auto; user-select: none; touch-action: none; transition: filter .18s ease-out; }
+.camera-card { position: absolute; width: min(18vw, 80px); min-width: 62px; aspect-ratio: 1; pointer-events: auto; user-select: none; touch-action: none; transition: filter .18s ease-out; }
 .camera-card:hover { filter: brightness(1.12); }
 .camera-frame { position: relative; width: 100%; height: calc(100% - 24px); overflow: hidden; border: 1px solid rgba(112,195,165,.67); border-radius: 16px; background: radial-gradient(circle at 45% 30%, #23473a, #08100e 70%); box-shadow: 0 14px 28px rgba(0,0,0,.42), inset 0 0 0 1px rgba(231,223,206,.06), 0 0 22px rgba(112,195,165,.1); cursor: grab; }
 .camera-card:active .camera-frame { cursor: grabbing; }
@@ -148,7 +148,7 @@ button:focus-visible { outline: 2px solid var(--jade-bright); outline-offset: 3p
 .camera-drag { right: 9px; bottom: 8px; display: flex; align-items: center; gap: 3px; color: rgba(231,223,206,.6); }
 .camera-toggle, .camera-hub { display: flex; align-items: center; justify-content: center; gap: 6px; height: 21px; border: 1px solid rgba(112,195,165,.35); color: var(--jade-bright); background: rgba(11, 26, 20, .86); font: 8px "DM Mono", monospace; letter-spacing: .1em; transition: transform .16s ease-out, background .16s ease-out; }
 .camera-toggle { width: 100%; border-radius: 0 0 10px 10px; border-top: 0; }
-.camera-hub { position: absolute; top: calc(20% + min(29vw, 164px) + 31px); left: 50%; translate: -50% 0; min-width: 135px; padding: 0 12px; border-radius: 999px; pointer-events: auto; color: var(--brass-bright); border-color: rgba(208,162,90,.42); }
+.camera-hub { position: absolute; top: calc(11% + max(min(18vw, 80px), 62px) + 6px); left: 50%; translate: -50% 0; min-width: 135px; padding: 0 12px; border-radius: 999px; pointer-events: auto; color: var(--brass-bright); border-color: rgba(208,162,90,.42); }
 .camera-hub:hover, .camera-toggle:hover { background: rgba(24, 59, 46, .94); }
 
 .board-zone { position: relative; z-index: 8; display: flex; flex-direction: column; align-items: center; margin: 21px auto 0; width: min(100%, 480px); }
@@ -229,8 +229,8 @@ button:focus-visible { outline: 2px solid var(--jade-bright); outline-offset: 3p
   .board-meta { margin-bottom: 6px; }
   .control-deck { margin-top: 9px; }
   .bottom-note { margin-top: 8px; }
-  .camera-card { width: 25vw; min-width: 92px; }
-  .camera-hub { top: calc(20% + 25vw + 26px); }
+  .camera-card { width: min(16vw, 72px); min-width: 58px; }
+  .camera-hub { top: calc(11% + max(min(16vw, 72px), 58px) + 6px); }
 }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
